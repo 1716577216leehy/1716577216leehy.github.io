@@ -2,40 +2,195 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>给你的一点小惊喜</title>
+  <title>给黄泽钰准备的小窝</title>
   <style>
     body {
-      background: linear-gradient(120deg, #ffd1dc, #fff1f7);
+      margin: 0;
       font-family: "Microsoft YaHei", sans-serif;
-      text-align: center;
-      padding-top: 15%;
+      background: linear-gradient(120deg, #ffd1dc, #fff1f7);
       color: #5a2a2a;
     }
-    h1 {
-      font-size: 3em;
-      animation: fadeIn 2s ease;
+
+    .center {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
-    p {
-      font-size: 1.5em;
-      margin-top: 20px;
-      animation: fadeIn 4s ease;
+
+    button {
+      padding: 12px 28px;
+      font-size: 18px;
+      border-radius: 30px;
+      border: none;
+      background: #ff8fab;
+      color: white;
+      cursor: pointer;
+      margin: 10px;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+
+    button:hover {
+      background: #ff6f91;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .menu button {
+      width: 200px;
+    }
+
+    textarea {
+      width: 80%;
+      height: 100px;
+      border-radius: 10px;
+      border: none;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    .music-player {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.8);
+      padding: 10px;
+      border-radius: 15px;
+    }
+
+    .music-player button {
+      padding: 5px 10px;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
 
-  <h1>❤️ 给我最喜欢的人 ❤️</h1>
-  <p>
-    从遇见你的那一天起，<br>
-    世界就变得不一样了。<br><br>
-    这个小小的网页，<br>
-    只是想告诉你：<br>
-    我很认真地喜欢你。
-  </p>
+<!-- 🎀 封面 -->
+<div id="cover" class="center">
+  <h1>给黄泽钰准备的小窝</h1>
+  <button onclick="enterHome()">点我进去</button>
+</div>
+
+<!-- 🏠 主界面 -->
+<div id="home" class="center hidden">
+  <div class="menu">
+    <button onclick="showSection('past')">过往</button>
+    <button onclick="showSection('now')">此刻心情</button>
+    <button onclick="showSection('miss')">我想你了</button>
+  </div>
+</div>
+
+<!-- 📜 过往 -->
+<div id="past" class="center hidden">
+  <h2>过往</h2>
+  <div id="pastList"></div>
+  <button onclick="backHome()">返回</button>
+</div>
+
+<!-- ✍️ 此刻心情 -->
+<div id="now" class="center hidden">
+  <h2>此刻心情</h2>
+  <textarea id="moodInput" placeholder="写下此刻的心情吧…"></textarea>
+  <br>
+  <button onclick="saveMood()">保存</button>
+  <button onclick="backHome()">返回</button>
+</div>
+
+<!-- ❤️ 我想你了 -->
+<div id="miss" class="center hidden">
+  <h2>我想你了</h2>
+  <p style="font-size:20px;">直接找我，我一直都在</p>
+  <button onclick="backHome()">返回</button>
+</div>
+
+<!-- 🎵 音乐播放器 -->
+<div class="music-player">
+  <button onclick="prevSong()">⏮</button>
+  <button onclick="togglePlay()">⏯</button>
+  <button onclick="nextSong()">⏭</button>
+  <br>
+  <input type="range" min="0" max="1" step="0.01" onchange="setVolume(this.value)">
+</div>
+
+<audio id="audio" autoplay></audio>
+
+<script>
+  const sections = ["cover", "home", "past", "now", "miss"];
+
+  function show(id) {
+    sections.forEach(s => {
+      document.getElementById(s).classList.add("hidden");
+    });
+    document.getElementById(id).classList.remove("hidden");
+  }
+
+  function enterHome() {
+    show("home");
+  }
+
+  function backHome() {
+    show("home");
+  }
+
+  function showSection(id) {
+    if (id === "past") loadPast();
+    show(id);
+  }
+
+  function saveMood() {
+    const text = document.getElementById("moodInput").value;
+    if (!text) return;
+    const list = JSON.parse(localStorage.getItem("moods") || "[]");
+    list.unshift({ text, time: new Date().toLocaleString() });
+    localStorage.setItem("moods", JSON.stringify(list));
+    document.getElementById("moodInput").value = "";
+    alert("已保存");
+  }
+
+  function loadPast() {
+    const list = JSON.parse(localStorage.getItem("moods") || "[]");
+    const div = document.getElementById("pastList");
+    div.innerHTML = list.map(m =>
+      `<p>🕰 ${m.time}<br>${m.text}</p>`
+    ).join("");
+  }
+
+  // 🎵 音乐
+  const songs = [
+    "music/song1.mp3",
+    "music/song2.mp3"
+  ];
+  let current = 0;
+  const audio = document.getElementById("audio");
+
+  function loadSong() {
+    audio.src = songs[current];
+    audio.play();
+  }
+
+  function togglePlay() {
+    audio.paused ? audio.play() : audio.pause();
+  }
+
+  function nextSong() {
+    current = (current + 1) % songs.length;
+    loadSong();
+  }
+
+  function prevSong() {
+    current = (current - 1 + songs.length) % songs.length;
+    loadSong();
+  }
+
+  function setVolume(v) {
+    audio.volume = v;
+  }
+
+  loadSong();
+</script>
 
 </body>
 </html>
