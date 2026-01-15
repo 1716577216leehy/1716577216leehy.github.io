@@ -3,20 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <title>给黄泽钰准备的小窝</title>
+
   <style>
     body {
       margin: 0;
       font-family: "Microsoft YaHei", sans-serif;
-      background: linear-gradient(120deg, #ffd1dc, #fff1f7);
       color: #5a2a2a;
+      background: linear-gradient(120deg, #ffd1dc, #fff1f7);
+      overflow: hidden;
+    }
+
+    /* 🌸 虚化背景层 */
+    #bg-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url("bg/1.jpg");
+      background-size: cover;
+      background-position: center;
+      filter: blur(18px);
+      opacity: 0.35;
+      z-index: -1;
+      transition: background-image 1.5s ease-in-out;
     }
 
     .center {
+      position: relative;
+      z-index: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      text-align: center;
     }
 
     button {
@@ -38,35 +59,52 @@
       display: none;
     }
 
-    .menu button {
-      width: 200px;
-    }
-
     textarea {
       width: 80%;
-      height: 100px;
-      border-radius: 10px;
+      max-width: 400px;
+      height: 120px;
+      border-radius: 12px;
       border: none;
-      padding: 10px;
+      padding: 12px;
       font-size: 16px;
+      resize: none;
     }
 
+    /* 🎵 音乐播放器 */
     .music-player {
       position: fixed;
       top: 10px;
       right: 10px;
-      background: rgba(255,255,255,0.8);
+      background: rgba(255, 255, 255, 0.85);
       padding: 10px;
       border-radius: 15px;
+      z-index: 2;
     }
 
     .music-player button {
-      padding: 5px 10px;
+      padding: 6px 10px;
       font-size: 14px;
+      margin: 2px;
+    }
+
+    input[type="range"] {
+      width: 100px;
+    }
+
+    #pastList p {
+      background: rgba(255,255,255,0.7);
+      padding: 10px;
+      border-radius: 10px;
+      margin: 10px;
+      max-width: 500px;
     }
   </style>
 </head>
+
 <body>
+
+<!-- 🌸 虚化背景 -->
+<div id="bg-layer"></div>
 
 <!-- 🎀 封面 -->
 <div id="cover" class="center">
@@ -76,11 +114,9 @@
 
 <!-- 🏠 主界面 -->
 <div id="home" class="center hidden">
-  <div class="menu">
-    <button onclick="showSection('past')">过往</button>
-    <button onclick="showSection('now')">此刻心情</button>
-    <button onclick="showSection('miss')">我想你了</button>
-  </div>
+  <button onclick="showSection('past')">过往</button>
+  <button onclick="showSection('now')">此刻心情</button>
+  <button onclick="showSection('miss')">我想你了</button>
 </div>
 
 <!-- 📜 过往 -->
@@ -110,38 +146,32 @@
 <div class="music-player">
   <button onclick="prevSong()">⏮</button>
   <button onclick="togglePlay()">⏯</button>
-  <button onclick="nextSong()">⏭</button>
-  <br>
+  <button onclick="nextSong()">⏭</button><br>
   <input type="range" min="0" max="1" step="0.01" onchange="setVolume(this.value)">
 </div>
 
 <audio id="audio" autoplay></audio>
 
 <script>
+  /* 🌙 页面切换 */
   const sections = ["cover", "home", "past", "now", "miss"];
 
   function show(id) {
-    sections.forEach(s => {
-      document.getElementById(s).classList.add("hidden");
-    });
+    sections.forEach(s => document.getElementById(s).classList.add("hidden"));
     document.getElementById(id).classList.remove("hidden");
   }
 
-  function enterHome() {
-    show("home");
-  }
-
-  function backHome() {
-    show("home");
-  }
+  function enterHome() { show("home"); }
+  function backHome() { show("home"); }
 
   function showSection(id) {
     if (id === "past") loadPast();
     show(id);
   }
 
+  /* 💭 心情存储 */
   function saveMood() {
-    const text = document.getElementById("moodInput").value;
+    const text = document.getElementById("moodInput").value.trim();
     if (!text) return;
     const list = JSON.parse(localStorage.getItem("moods") || "[]");
     list.unshift({ text, time: new Date().toLocaleString() });
@@ -158,16 +188,16 @@
     ).join("");
   }
 
-  // 🎵 音乐
+  /* 🎵 音乐播放 */
   const songs = [
     "music/song1.mp3",
     "music/song2.mp3"
   ];
-  let current = 0;
+  let currentSong = 0;
   const audio = document.getElementById("audio");
 
   function loadSong() {
-    audio.src = songs[current];
+    audio.src = songs[currentSong];
     audio.play();
   }
 
@@ -176,12 +206,12 @@
   }
 
   function nextSong() {
-    current = (current + 1) % songs.length;
+    currentSong = (currentSong + 1) % songs.length;
     loadSong();
   }
 
   function prevSong() {
-    current = (current - 1 + songs.length) % songs.length;
+    currentSong = (currentSong - 1 + songs.length) % songs.length;
     loadSong();
   }
 
@@ -190,6 +220,20 @@
   }
 
   loadSong();
+
+  /* 🖼 背景虚化幻灯片 */
+  const backgrounds = [
+    "bg/1.jpg",
+    "bg/2.jpg",
+    "bg/3.jpg"
+  ];
+  let bgIndex = 0;
+
+  setInterval(() => {
+    bgIndex = (bgIndex + 1) % backgrounds.length;
+    document.getElementById("bg-layer").style.backgroundImage =
+      `url('${backgrounds[bgIndex]}')`;
+  }, 8000);
 </script>
 
 </body>
